@@ -7,7 +7,7 @@ import Create from './actions/Create'
 import Update from './actions/Update'
 import Delete from './actions/Delete'
 
-export default class VuexOrmAxios {
+export default class VuexOrmCrudApi {
   /**
    * @constructor
    * @param {Components} components The Vuex-ORM Components collection

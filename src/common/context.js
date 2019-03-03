@@ -1,6 +1,4 @@
-import merge from 'lodash/merge'
 import find from 'lodash/find'
-import { VuexOrmPluginConfig } from '../support/interfaces';
 
 export default class Context {
   /**
@@ -12,7 +10,6 @@ export default class Context {
    */
   constructor(components, options) {
     this.components = components;
-    this.options = merge({}, VuexOrmPluginConfig, options);
     this.database = options.database;
 
     if (!options.database) {

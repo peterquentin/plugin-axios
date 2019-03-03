@@ -1,5 +1,4 @@
 import merge from 'lodash/merge';
-import Axios from '../orm/axios';
 import Action from './Action'
 import Context from '../common/context'
 
@@ -16,9 +15,7 @@ export default class Update extends Action {
 
     const context = Context.getInstance();
     const model = context.getModelFromState(state);
-    const endpoint = Action.transformParams('$update', model, params);
-    const axios =  new Axios(model.methodConf.http);
-    const request = axios.put(endpoint, params.data);
+    const request = model.request(params).save();
 
     this.onRequest(model, params);
     request
@@ -35,7 +32,7 @@ export default class Update extends Action {
    */
   static onRequest(model, params) {
     model.update({
-      where: params.params.id,
+      where: params.query.id,
       data: {
         $isUpdating: true,
         $updateErrors: []
@@ -51,7 +48,7 @@ export default class Update extends Action {
    */
   static onSuccess(model, params, data) {
     model.update({
-      where: params.params.id || data.id,
+      where: params.query.id || data.id,
       data: merge({}, data, {
         $isUpdating: false,
         $updateErrors: []
@@ -67,7 +64,7 @@ export default class Update extends Action {
    */
   static onError(model, params, error) {
     model.update({
-      where: params.params.id,
+      where: params.query.id,
       data: {
         $isUpdating: false,
         $updateErrors: error

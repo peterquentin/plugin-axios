@@ -1,4 +1,3 @@
-import Axios from '../orm/axios';
 import Action from './Action'
 import Context from '../common/context'
 
@@ -11,9 +10,7 @@ export default class Delete extends Action {
   static async call ({ state, commit }, params = {}) {
     const context = Context.getInstance();
     const model = context.getModelFromState(state);
-    const endpoint = Action.transformParams('$delete', model, params);
-    const axios =  new Axios(model.methodConf.http);
-    const request = axios.delete(endpoint);
+    const request = model.request(params).delete();
 
     this.onRequest(model, params);
     request
@@ -30,7 +27,7 @@ export default class Delete extends Action {
    */
   static onRequest(model, params) {
     model.update({
-      where: params.params.id,
+      where: params.query.id,
       data: {
         $isDeleting: true,
         $deleteErrors: []
@@ -46,7 +43,7 @@ export default class Delete extends Action {
    */
   static onSuccess(model, params, data) {
     model.delete({
-      where: params.params.id || data.id,
+      where: params.query.id || data.id,
     })
   }
 
@@ -58,7 +55,7 @@ export default class Delete extends Action {
    */
   static onError(model, params, error) {
     model.update({
-      where: params.params.id,
+      where: params.query.id,
       data: {
         $isDeleting: false,
         $deleteErrors: error

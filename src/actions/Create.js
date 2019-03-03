@@ -1,4 +1,3 @@
-import Axios from '../orm/axios';
 import Action from './Action'
 import Context from '../common/context'
 
@@ -15,13 +14,11 @@ export default class Create extends Action {
 
     const context = Context.getInstance();
     const model = context.getModelFromState(state);
-    const endpoint = Action.transformParams('$create', model, params);
-    const axios =  new Axios(model.methodConf.http);
-    const request = axios.post(endpoint, params.data);
+    const request = model.request(params).save();
 
     this.onRequest(commit);
     request
-      .then(data => this.onSuccess(commit, model, data))
+      .then(data => this.onSuccess(commit, model, data.data))
       .catch(error => this.onError(commit, error))
 
     return request;

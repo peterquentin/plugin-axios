@@ -1,25 +1,24 @@
-# Vuex ORM Plugin: Axios
+# Vuex ORM Plugin: CRUD API
 
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-[![License](https://img.shields.io/npm/l/@vuex-orm/plugin-axios.svg)](https://github.com/vuex-orm/plugin-axios/blob/master/LICENSE.md)
+
+# Notes
+Currently in progress, please use at your own risk.
+
+# Credits
+This package is based upon [Vuex ORM Plugin: Axios](https://github.com/vuex-orm/plugin-axios)
+I mainly removed code and rewrote the basic request flow to support a more dynamic approach, HTTP Client independent.
+Be sure to check them out if you like this package.
 
 # Installation
 ``` js
 import VuexORM from '@vuex-orm/core'
-import VuexORMAxios from '@vuex-orm/plugin-axios'
+import VuexOrmCrudApi from '@peterquentin/vuex-orm-crud-api'
 import database from './database'
 ..
 
-VuexORM.use(VuexORMAxios, {
-  database,
-  http: {
-    baseURL: 'https://jsonplaceholder.typicode.com',
-    url: '/',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  }
+VuexORM.use(VuexOrmCrudApi, {
+  database
 })
 ..
 
@@ -30,163 +29,6 @@ export default () => new Vuex.Store({
 
 ```
 
-# Axios Request Config
-
-``` js
-export const AxiosRequestConfig = {
-  /**
-   * Default Base URL
-   */
-  baseURL: 'http://localhost:3000',
-
-  /**
-   * Default URL
-   */
-  url: '/',
-
-  /**
-   * Default Method
-   */
-  method: 'get',
-
-  /**
-   * Access Token Variable
-   */
-  access_token: '',
-
-  /**
-   * Default Headers
-   */
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-
-  /**
-   * Default Data
-   */
-  data: {},
-
-  /**
-   * Default Timout
-   */
-  timeout: 0,
-
-  /**
-   * Default With Credentials Flag
-   */
-  withCredentials: false,
-
-  /**
-   * Default Response Type
-   */
-  responseType: 'json',
-
-  /**
-   * Default Response Encoding
-   */
-  responseEncoding: 'utf8',
-
-  /**
-   * Default Validate Status Method
-   * @param {number} status
-   */
-  validateStatus(status) {
-    return status >= 200 && status < 300; // default
-  },
-
-  /**
-   * Default Max Redirects
-   */
-  maxRedirects: 5,
-
-  /**
-   * Default Socket Path
-   */
-  socketPath: null,
-
-  /**
-   * Default Proxy
-   */
-  proxy: {},
-
-  /**
-   * Default on Response
-   * @param {object} response
-   */
-  onResponse(response) {
-    return response.data;
-  },
-
-  /**
-   * On 401 Unauthorised
-   * @param {object} error
-   */
-  onUnauthorised(error) {
-    //
-  },
-
-  /**
-   * On 404 Not Found
-   * @param {object} error
-   */
-  onNotFound(error) {
-    //
-  },
-
-  /**
-   * On 500 Server Error
-   * @param {object} error
-   */
-  onServerError(error) {
-    //
-  },
-
-  /**
-   * On Generic Error
-   * @param {object} error
-   */
-  onGenericError(error) {
-    //
-  },
-
-  /**
-   * On Laravel Validation Error (Or 422 Error).
-   * @param {object} error
-   */
-  onValidationError(error) {
-    //
-  },
-
-  /**
-   * Default on Error
-   * @param {object} error
-   */
-  onError(error) {
-    switch (error.response.status) {
-      case 401:
-        this.onUnauthorised(error);
-        break;
-      case 404:
-        this.onNotFound(error);
-        break;
-      case 422:
-        this.onValidationError(error);
-        break;
-      case 500:
-        this.onServerError(error);
-        break;
-      default:
-        this.onGenericError(error);
-        break;
-    }
-
-    return Promise.reject(error);
-  },
-};
-```
-
-
 # Model Methods
 ``` js
 import User from '../models/User';
@@ -194,13 +36,39 @@ import User from '../models/User';
 /**
  * @uri `/users`
  */
-User.$fetch();
+User.$fetch({
+  query: {
+    id: 1
+  }
+});
+
+or 
+
+/** 
+  * The request entity object is exposed when we pass a closure so you can do some manipulation
+  * Let's say we've injected a vue-api-query Model we can do the following: 
+  */
+User.$fetch({
+  query: function(request) {
+    // It's important we return the request object without calling the API (so no get(), set() etc..)
+    return request.where('group_id', '1')->orderBy('created_at')
+  }
+});
+
+/** 
+  * If you have a method on your request entity that does all the have lifting
+  * You can call that function and that function should return the 
+  * request entity without calling the API
+  */
+User.$fetch({
+  query: 'function'
+});
 
 /**
  * @uri `/users/:id`
  */
 User.$get({
-  params: {
+  query: {
     id: 1
   }
 }); 
@@ -216,7 +84,7 @@ User.$create({
  * @uri `/users/:id`
  */
 User.$update({
-  params: {
+  query: {
     id: 1
   },
   data: {}
@@ -226,7 +94,7 @@ User.$update({
  * @uri `/users/:id`
  */
 User.$delete({
-  params: {
+  query: {
     id: 1
   }
 });
@@ -255,9 +123,16 @@ export default class Post extends Model {
 
 ``` js
 import { Model } from '@vuex-orm/core'
+import PostModel from '~/models/api/Post'
 
 export default class Post extends Model {
   static entity = 'posts'
+  /**
+   * Here you set your request entity, this should be a model which utilizes 
+   * a Promise based HTTP client, Axios for instance or see vue-api-query 
+   * which uses Axios under the hood
+   */ 
+  static requestEntity = PostModel
 
   static fields () {
     return {
@@ -265,48 +140,6 @@ export default class Post extends Model {
       title: this.string('')
     }
   }
-
-  static methodConf = {
-    http: {
-      url: '/post'
-    },
-    methods: {
-      $fetch: {
-        name: 'fetch',
-        http: {
-          url: '',
-          method: 'get',
-        },
-      },
-      $get: {
-        name: 'get',
-        http: {
-          url: '/:id',
-          method: 'get',
-        },
-      },
-      $create: {
-        name: 'create',
-        http: {
-          url: '',
-          method: 'post',
-        },
-      },
-      $update: {
-        name: 'update',
-        http: {
-          url: '/:id',
-          method: 'put',
-        },
-      },
-      $delete: {
-        name: 'delete',
-        http: {
-          url: '/:id',
-          method: 'delete',
-        },
-      },
-    },
-  }
+  
 }
 ```

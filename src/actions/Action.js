@@ -1,9 +1,5 @@
-import forEach from 'lodash/forEach';
-import has from 'lodash/has';
-import map from 'lodash/map';
 import merge from 'lodash/merge';
-import Context from '../common/context';
-import { ModuleConfig, ModelConfig } from '../support/interfaces';
+import { ModuleConfig } from '../support/defaults';
 
 export default class Action {
   /**
@@ -19,11 +15,6 @@ export default class Action {
    * @param {object} model
    */
   static transformModel(model) {
-    const context = Context.getInstance();
-    ModelConfig.http = merge({}, ModelConfig.http, context.options.http);
-    model.methodConf = merge({}, ModelConfig, model.methodConf);
-    model.methodConf.http.url = (model.methodConf.http.url === '/') ? `/${model.entity}` : model.methodConf.http.url;
-
     /**
      * Add Model Interface to each model
      */
@@ -42,23 +33,5 @@ export default class Action {
     };
 
     return model;
-  }
-
-  /**
-   * Transform Params and Return Endpoint
-   * @param {string} type
-   * @param {object} model
-   * @param {object} config
-   */
-  static transformParams(type, model, config = {}) {
-    let endpoint = `${model.methodConf.http.url}${model.methodConf.methods[type].http.url}`;
-    const params = map(endpoint.match(/(\/?)(\:)([A-z]*)/gm), param => param.replace('/', ''));
-
-    forEach(params, (param) => {
-      const paramValue = has(config.params, param.replace(':', '')) ? config.params[param.replace(':', '')] : '';
-      endpoint = endpoint.replace(param, paramValue).replace('//', '/');
-    });
-    if (config.query) endpoint += `?${Object.keys(config.query).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(config.query[k])}`).join('&')}`;
-    return endpoint;
   }
 }
