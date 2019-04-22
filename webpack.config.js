@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/index.js',
   target: 'node',
   output: {
-    library: 'vuex-orm-axios',
+    library: 'vuex-orm-crud-api',
     libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',

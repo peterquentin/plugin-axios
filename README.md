@@ -56,7 +56,7 @@ User.$fetch({
 });
 
 /** 
-  * If you have a method on your request entity that does all the have lifting
+  * If you have a method on your request entity that does all the heavy lifting
   * You can call that function and that function should return the 
   * request entity without calling the API
   */

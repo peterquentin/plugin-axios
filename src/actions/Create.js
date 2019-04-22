@@ -7,9 +7,9 @@ export default class Create extends Action {
    * @param {object} store
    * @param {object} params
    */
-  static async call ({ state, commit }, params = {}) {
-    if(!params.data || typeof params !== 'object') {
-      throw new TypeError("You must include a data object in the params to send a POST request", params)
+  static async call({ state, commit }, params = {}) {
+    if (!params.data || typeof params !== 'object') {
+      throw new TypeError('You must include a data object in the params to send a POST request', params)
     }
 
     const context = Context.getInstance();
